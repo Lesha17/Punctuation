@@ -68,7 +68,8 @@ def calc_metrics(eval_pred):
 
     result = {'acc': accuracy_score(y_true[interest_idx], y_pred[interest_idx])}
     for p, idx in PUNCT_TO_ID.items():
-        result[p + '_roc_auc'] = roc_auc_score(y_true.flatten() == idx, eval_pred.predictions[:, :, idx].flatten())
+        if sum(y_true == idx) > 1:
+            result[p + '_roc_auc'] = roc_auc_score(y_true.flatten() == idx, eval_pred.predictions[:, :, idx].flatten())
 
     return result
 
