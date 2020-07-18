@@ -54,28 +54,35 @@ class PunctuationDataset(IterableDataset):
                     sentences = sent_tokenize(file.read())
                     for i in range(len(sentences) - self.sentences_per_sample):
                         sentences = ' '.join(sentences[i:i + self.sentences_per_sample])
-                        words, labels = self.process_text(sentences)
-                        encoded = self.tokenizer(' '.join(words),
-                                            max_length=self.max_length, padding="max_length", truncation=True)
-                        label_idx = [self.label_to_idx[label] for label in labels]
-                        if len(label_idx) > self.max_length:
-                            label_idx = label_idx[:self.max_length]
-                        else:
-                            label_idx += [0] * (self.max_length - len(label_idx))
+                        encoded, label_idx = self.process_text(sentences)
                         yield InputFeatures(**encoded, labels=label_idx)
 
+    def pad_to_max_len(self, seq):
+        return seq + [0] * (self.max_length - len(seq))
+
     def process_text(self, text):
-        tokens = wordpunct_tokenize(text)
-        words = []
+        tokenized = self.tokenizer(text, max_length=self.max_length, padding="max_length", truncation=True)
+        result_token_ids = []
+        token_type_ids = []
+        attention_mask = []
         labels = []
-        for token in tokens:
-            punct_symbols = [c for c in token if c in PUNCT_TO_ID]
-            if len(punct_symbols) > 0: # Punctuation with 2 characters
+        for idx, tti, att_msk in list(zip(tokenized.input_ids, tokenized.token_type_ids, tokenized.attention_mask)):
+            token = self.tokenizer.ids_to_tokens[idx]
+            if token in PUNCT_TO_ID:
                 if len(labels) == 0:
                     print('Punctuation before any text:', text[:50], '...')
                     continue
-                labels[-1] = punct_symbols[0] # Use the first punct symbol in this case
+                labels[-1] = token # Use the first punct symbol in this case
             else:
-                words.append(token)
+                result_token_ids.append(idx)
+                token_type_ids.append(tti)
+                attention_mask.append(att_msk)
                 labels.append(' ')
-        return words, labels
+
+
+        result_encoded = {
+            'input_ids': self.pad_to_max_len(result_token_ids),
+            'token_type_ids': self.pad_to_max_len(token_type_ids),
+            'attention_mask': self.pad_to_max_len(attention_mask)
+        }
+        return result_encoded, self.pad_to_max_len([self.label_to_idx[label] for label in labels])
