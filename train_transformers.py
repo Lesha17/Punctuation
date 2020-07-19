@@ -71,9 +71,12 @@ if __name__ == '__main__':
     config.num_labels = len(PUNCT_TO_ID)
     model = transformers.AutoModelForTokenClassification.from_pretrained('DeepPavlov/rubert-base-cased', config=config)
 
-    dataset_train = PunctuationDataset(data_dir=os.path.join(data_dir, 'train'), tokenizer=tokenizer, label_to_idx=PUNCT_TO_ID)
-    dataset_test = PunctuationDataset(data_dir=os.path.join(data_dir, 'test'), tokenizer=tokenizer, label_to_idx=PUNCT_TO_ID)
-    dataset_dev = PunctuationDataset(data_dir=os.path.join(data_dir, 'dev'), tokenizer=tokenizer, label_to_idx=PUNCT_TO_ID)
+    dataset_train = PunctuationDataset(data_dir=os.path.join(data_dir, 'train'), tokenizer=tokenizer,
+                                       label_to_idx=PUNCT_TO_ID, batch_size=training_args_dict['per_device_train_batch_size'])
+    dataset_test = PunctuationDataset(data_dir=os.path.join(data_dir, 'test'), tokenizer=tokenizer,
+                                      label_to_idx=PUNCT_TO_ID, batch_size=training_args_dict['per_device_eval_batch_size'])
+    dataset_dev = PunctuationDataset(data_dir=os.path.join(data_dir, 'dev'), tokenizer=tokenizer,
+                                     label_to_idx=PUNCT_TO_ID, batch_size=training_args_dict['per_device_eval_batch_size'])
 
     training_args = transformers.TrainingArguments(**training_args_dict)
 

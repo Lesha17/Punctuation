@@ -27,13 +27,14 @@ class InputFeatures:
 
 
 class PunctuationDataset(IterableDataset):
-    def __init__(self, data_dir, tokenizer, label_to_idx, sentences_per_sample=3, max_len=192):
+    def __init__(self, data_dir, tokenizer, label_to_idx, sentences_per_sample=3, max_len=192, batch_size=32):
         self.data_dir = data_dir
         self.tokenizer = tokenizer
         self.label_to_idx = label_to_idx
         self.sentences_per_sample = sentences_per_sample
         self.max_length = max_len
         self._cached_len = None
+        self.batch_size = batch_size
 
     def __iter__(self):
         return iter(self.get_items())
@@ -42,7 +43,7 @@ class PunctuationDataset(IterableDataset):
         if self._cached_len is None:
             print('Caclulating length of dataset', self.data_dir)
             self._cached_len = sum([1 for _ in iter(self)])
-        return self._cached_len
+        return self._cached_len / self.batch_size
 
     def get_items(self):
         for filename in os.listdir(self.data_dir):
@@ -72,7 +73,7 @@ class PunctuationDataset(IterableDataset):
                 if len(labels) == 0:
                     print('Punctuation before any text:', text[:50], '...')
                     continue
-                labels[-1] = token # Use the first punct symbol in this case
+                labels[-1] = token
             else:
                 result_token_ids.append(idx)
                 token_type_ids.append(tti)
