@@ -53,8 +53,8 @@ class PunctuationDataset(IterableDataset):
                 with open(filepath) as file:
                     sentences = sent_tokenize(file.read())
                     for i in range(len(sentences) - self.sentences_per_sample):
-                        sentences = ' '.join(sentences[i:i + self.sentences_per_sample])
-                        encoded, label_idx = self.process_text(sentences)
+                        sample = ' '.join(sentences[i:i + self.sentences_per_sample])
+                        encoded, label_idx = self.process_text(sample)
                         yield InputFeatures(**encoded, labels=label_idx)
 
     def pad_to_max_len(self, seq):
