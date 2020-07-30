@@ -1,3 +1,7 @@
+# About
+
+The task is to restore punctuation for Russian language. To solve this, I finetuned RuBERT on Lenta dataset from [Taiga corpus](https://tatianashavrina.github.io/taiga_site/).
+
 # Demo
 
 Evaluation and results are shown in Demo.ipynb notebook. To to re-run this notebook, put model.zip in the working directory 
